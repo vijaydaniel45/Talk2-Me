@@ -1,0 +1,6 @@
+{
+  "name": "current-weather",
+  "description": "Provides current weather for a given city",
+  "triggers": ["weather", "temperature", "forecast"]
+}
+

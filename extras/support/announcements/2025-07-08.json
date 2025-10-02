@@ -1,0 +1,25 @@
+[
+  {
+    "thumbnail_url": "https://cdn.anythingllm.com/support/announcements/assets/private-browsing.png",
+    "title": "Private Web Scraping",
+    "short_description": "Scrape private, gated, or authenticated websites using the browser tool.",
+    "goto": "https://www.google.com/",
+    "author": "Talk2-Me",
+    "date": "July 8, 2025"
+  },
+  {
+    "thumbnail_url": "https://cdn.anythingllm.com/support/announcements/assets/mobile.png",
+    "title": "Talk2-Me Mobile Beta",
+    "short_description": "Talk2-Me on-device, offline, and private. Syncs with Talk2-Me.",
+    "goto": "https://www.google.com/",
+    "author": "Talk2-Me",
+    "date": "July 3, 2025"
+  },
+  {
+    "title": "Community Hub updates",
+    "short_description": "You can now easily push and pull Agent Flows, System Prompts, and more to the Talk2-Me Community Hub.",
+    "goto": "https://www.google.com/",
+    "author": "Talk2-Me",
+    "date": "June 25, 2025"
+  }
+]

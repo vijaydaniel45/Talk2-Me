@@ -1,0 +1,35 @@
+[
+  {
+    "thumbnail_url": "http://Talk2-Me.example.com",
+    "title": "Welcome to Our App",
+    "short_description": "Get started by exploring the features available to you.",
+    "goto": "/assets/announcements/pages/my-local-page.html",
+    "author": "Example Team",
+    "date": "October 2, 2025"
+  },
+  {
+    "thumbnail_url": "https://via.placeholder.com/80",
+    "title": "New Feature Released",
+    "short_description": "Check out the latest update that improves your experience.",
+    "goto": "https://www.example.com/new-feature",
+    "author": "Example Team",
+    "date": "October 1, 2025"
+  },
+  {
+    "thumbnail_url": "https://via.placeholder.com/80",
+    "title": "Tips & Tricks",
+    "short_description": "Learn some useful tips to get the most out of the app.",
+    "goto": "https://www.example.com/tips",
+    "author": "Example Team",
+    "date": "September 30, 2025"
+  },
+  {
+    "thumbnail_url": "https://telus.openstack/credentials_change",
+    "title": "Openstack GPG Credentials",
+    "short_description": "This page is helping to maintain gpg credentials and modify or update.",
+    "goto": "/assets/announcements/pages/my-local-page.html",
+    "author": "Talk2-Me",
+    "date": "September 30, 2025"
+  }
+]
+

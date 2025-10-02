@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenStack Credential GPG Utility</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+  h1 { color: #333; text-align: center; }
+  .tab { overflow: hidden; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+  .tab button { background-color: inherit; border: none; outline: none; cursor: pointer; padding: 14px 20px; transition: 0.3s; }
+  .tab button:hover { background-color: #ddd; }
+  .tab button.active { background-color: #ccc; }
+  .tabcontent { display: none; padding: 20px; background: #fff; border-radius: 5px; box-shadow: 0 0 5px #aaa; }
+  label { display: block; margin-top: 10px; font-weight: bold; }
+  input[type=text], input[type=password] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+  button.generate { margin-top: 15px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  button.generate:hover { background: #218838; }
+  pre { background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/openpgp@5.3.0/dist/openpgp.min.js"></script>
+</head>
+<body>
+
+<h1>OpenStack Credential GPG Utility</h1>
+
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'Create')" id="defaultOpen">Create GPG</button>
+  <button class="tablinks" onclick="openTab(event, 'Update')">Update Password</button>
+</div>
+
+<div id="Create" class="tabcontent">
+  <h2>Create New GPG File</h2>
+  <form id="createForm">
+    <label>Site:</label>
+    <input type="text" id="site" required>
+    <label>Project:</label>
+    <input type="text" id="project" required>
+    <label>Username:</label>
+    <input type="text" id="username" required>
+    <label>Password:</label>
+    <input type="password" id="password" required>
+    <label>OS_AUTH_URL:</label>
+    <input type="text" id="auth_url" required>
+    <label>OS_USER_DOMAIN_NAME:</label>
+    <input type="text" id="user_domain" value="Default">
+    <label>OS_PROJECT_DOMAIN_ID:</label>
+    <input type="text" id="project_domain" value="default">
+    <label>OS_IDENTITY_API_VERSION:</label>
+    <input type="text" id="api_version" value="3">
+    <label>OS_INSECURE:</label>
+    <input type="text" id="insecure" value="true">
+    <label>OS_INTERFACE:</label>
+    <input type="text" id="interface" value="public">
+    <button type="button" class="generate" onclick="generateGPG()">Generate & Download GPG</button>
+  </form>
+  <pre id="createOutput"></pre>
+</div>
+
+<div id="Update" class="tabcontent">
+  <h2>Update Password in Existing GPG</h2>
+  <form id="updateForm">
+    <label>Existing GPG File:</label>
+    <input type="file" id="gpgFile" accept=".gpg" required>
+    <label>New Password:</label>
+    <input type="password" id="newPassword" required>
+    <button type="button" class="generate" onclick="updateGPG()">Update & Download GPG</button>
+  </form>
+  <pre id="updateOutput"></pre>
+</div>
+
+<script>
+  const DEFAULT_PASSPHRASE = "gitlabexploration"; // hidden, used internally only
+
+  function openTab(evt, tabName) {
+    let i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+  document.getElementById("defaultOpen").click();
+
+  async function generateGPG() {
+    const site = document.getElementById("site").value.trim();
+    const project = document.getElementById("project").value.trim();
+
+    // ❌ Block underscores in site/project
+    if (site.includes("_") || project.includes("_")) {
+      document.getElementById("createOutput").textContent = "❌ Site and Project names cannot contain underscores (_)";
+      return;
+    }
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const auth_url = document.getElementById("auth_url").value;
+    const user_domain = document.getElementById("user_domain").value;
+    const project_domain = document.getElementById("project_domain").value;
+    const api_version = document.getElementById("api_version").value;
+    const insecure = document.getElementById("insecure").value;
+    const iface = document.getElementById("interface").value;
+
+    const shContent = `#!/bin/bash
+export OS_AUTH_URL="${auth_url}"
+export OS_PROJECT_NAME="${project}"
+export OS_USERNAME="${username}"
+export OS_PASSWORD='${password}'
+export OS_USER_DOMAIN_NAME="${user_domain}"
+export OS_IDENTITY_API_VERSION="${api_version}"
+export OS_INSECURE="${insecure}"
+export OS_INTERFACE="${iface}"
+export OS_PROJECT_DOMAIN_ID="${project_domain}"`;
+
+    const encrypted = await openpgp.encrypt({
+      message: await openpgp.createMessage({ text: shContent }),
+      passwords: [DEFAULT_PASSPHRASE],
+      format: 'binary'
+    });
+
+    const blob = new Blob([encrypted], { type: 'application/octet-stream' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${site}_${project}.sh.gpg`;
+    a.click();
+
+    document.getElementById("createOutput").textContent = "✅ GPG file generated successfully!";
+  }
+
+  async function updateGPG() {
+    const file = document.getElementById("gpgFile").files[0];
+    const newPassword = document.getElementById("newPassword").value;
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const encryptedData = new Uint8Array(reader.result);
+
+      // Decrypt
+      const message = await openpgp.readMessage({ binaryMessage: encryptedData });
+      const { data: decrypted } = await openpgp.decrypt({
+        message,
+        passwords: [DEFAULT_PASSPHRASE],
+        format: 'text'
+      });
+
+      // Replace password line
+      const updatedSh = decrypted.replace(/export OS_PASSWORD='.*'/, `export OS_PASSWORD='${newPassword}'`);
+
+      // Encrypt again
+      const encrypted = await openpgp.encrypt({
+        message: await openpgp.createMessage({ text: updatedSh }),
+        passwords: [DEFAULT_PASSPHRASE],
+        format: 'binary'
+      });
+
+      const blob = new Blob([encrypted], { type: 'application/octet-stream' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.name;
+      a.click();
+
+      document.getElementById("updateOutput").textContent = "✅ Password updated and GPG file regenerated!";
+    };
+    reader.readAsArrayBuffer(file);
+  }
+</script>
+</body>
+</html>
+

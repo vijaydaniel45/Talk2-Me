@@ -1,0 +1,41 @@
+{
+  "active": true,
+  "hubId": "local-system-monitor-new",
+  "name": "Local System Monitor",
+  "schema": "skill-1.0.0",
+  "version": "1.0.0",
+  "description": "Monitor local CPU, memory, and disk space by executing shell commands via FastAPI backend",
+  "author": "@vijay",
+  "author_url": "https://github.com/vijay",
+  "license": "MIT",
+
+  "setup_args": {},
+
+  "examples": [
+    {
+      "prompt": "Check CPU usage",
+      "call": "{\"command\": \"top -b -n 1 | head -n 5\"}"
+    },
+    {
+      "prompt": "How much memory is used?",
+      "call": "{\"command\": \"free -m\"}"
+    },
+    {
+      "prompt": "Show me disk space usage",
+      "call": "{\"command\": \"df -h\"}"
+    }
+  ],
+
+  "entrypoint": {
+    "file": "handler.js",
+    "params": {
+      "command": {
+        "description": "The shell command to run on localhost",
+        "type": "string"
+      }
+    }
+  },
+
+  "imported": true
+}
+
